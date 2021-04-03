@@ -80,7 +80,7 @@ def get_train_args():
                         help='Number of GPU to train the model on.')
     parser.add_argument('--output_dir',
                         type=str,
-                        default='./save',
+                        default='./save/train/longFormer',
                         help='Directory to store the model in (If already exists, use --overwrite_output_dir).')
     parser.add_argument('--overwrite_output_dir',
                         type=bool,
@@ -121,6 +121,9 @@ def get_train_args():
     parser.add_argument('--local_rank',
                         type=int,
                         default=-1)
+    parser.add_argument('--nproc_per_node',
+                        type=int,
+                        default=2)
     parser.add_argument('--fp16',
                         type=bool,
                         default=True)

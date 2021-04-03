@@ -1,9 +1,12 @@
 import numpy as np
 import torch
 import os
+import sys
 from args import get_train_args
 import util
+import logging
 
+import transformers
 from transformers import LongformerForQuestionAnswering, LongformerTokenizerFast, EvalPrediction
 from transformers import (
     HfArgumentParser,
@@ -12,18 +15,47 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+from transformers.trainer_utils import get_last_checkpoint, is_main_process
+
+logger = logging.getLogger(__name__)
 
 
 def main(args):
     # Set up logging and devices
-    args.output_dir = util.get_save_dir(args.output_dir, args.name, training=True)
-    log = util.get_logger(args.output_dir, args.name)
+    if (
+            os.path.exists(args.output_dir)
+            and os.listdir(args.output_dir)
+            and args.do_train
+            and not args.overwrite_output_dir
+    ):
+        raise ValueError(
+            f"Output directory ({args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+        )
 
     Hparser = HfArgumentParser((TrainingArguments))
 
     args_dict = vars(args)
 
     training_args = Hparser.parse_dict(args_dict)[0]
+
+    # Setup logging
+    # noinspection PyArgumentList
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
+    logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
+
+    # Log on each process the small summary:
+    logger.warning(
+        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
+        + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+    )
+    # Set the verbosity to info of the Transformers logger (on main process only):
+    if is_main_process(training_args.local_rank):
+        transformers.utils.logging.set_verbosity_info()
+    logger.info(f"Training/evaluation parameters {training_args}")
 
     # Set seed
     set_seed(args.seed)
@@ -38,12 +70,12 @@ def main(args):
     )
 
     # Get datasets
-    #log.info('loading data from: ', args.train_file_path, ' and ', args.valid_file_path)
+    # log.info('loading data from: ', args.train_file_path, ' and ', args.valid_file_path)
     train_dataset = torch.load(args.train_file_path)
     valid_dataset = torch.load(args.valid_file_path)
-    #log.info('Data loading done')
-    #print(vars(training_args))
-    #print(training_args.parallel_mode)
+    # log.info('Data loading done')
+    # print(vars(training_args))
+    # print(training_args.parallel_mode)
     # Initialize our Trainer
     trainer = Trainer(
         model=model,
@@ -89,5 +121,5 @@ def _mp_fn(index):
     main(get_train_args())
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main(get_train_args())
