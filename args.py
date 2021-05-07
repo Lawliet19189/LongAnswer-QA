@@ -4,135 +4,146 @@ from transformers import (
 HfArgumentParser,
 TrainingArguments
 )
+
+import dataclasses
+import logging
+import os
+import sys
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+
 logger = logging.getLogger(__name__)
 
 
-def model_args(parser):
+@dataclass
+class ModelArguments:
     """
-    model/config/tokenizer arguments
+    Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
-    parser.add_argument(
-        '--model_name_or_path',
-        type=str,
-        default="allenai/longformer-base-4096",
-        help='Path to pretrained model or model identifier from hugginface.co/models'
+
+    model_name_or_path: str = field(
+        default="allenai/longformer-base-4096", metadata={"help": "Path to pretrained model or model identifier from hugginface.co/models"}
     )
-    parser.add_argument(
-        '--tokenizer_name',
-        type=str,
-        default=None,
-        help="Pretrained tokenizer name or path"
+    tokenizer_name: Optional[str] = field(
+        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
     )
-    parser.add_argument(
-        '--cache_dir',
-        type=str,
-        default=None,
-        help="Where do you want to store the pretrained models downloaded from s3"
+    cache_dir: Optional[str] = field(
+        default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
     )
 
 
-def setup_args(parser):
+@dataclass
+class DataTrainingArguments:
     """
-    model/config/tokenizer arguments
+    Arguments pertaining to what data we are going to input our model for training and eval.
     """
-    parser.add_argument(
-        '--max_len',
-        type=int,
-        default=4096,
-        help='PMax input length for the source text'
+    train_file_path: Optional[str] = field(
+        default='data/train_data.pt',
+        metadata={"help": "Path for cached train dataset"},
+    )
+    valid_file_path: Optional[str] = field(
+        default='data/valid_data.pt',
+        metadata={"help": "Path for cached valid dataset"},
+    )
+    max_len: Optional[int] = field(
+        default=1024,
+        metadata={"help": "Max input length for the source text"},
     )
 
 
-def get_train_args():
-    parser = argparse.ArgumentParser('Train spanBert model on NQ')
+@dataclass
+class TrainingArguments(TrainingArguments):
+    """
+    Training Arguments that we are extending from default transformer TrainingArguments
+    """
+    run_name: Optional[str] = field(
+        default='LongFormer-optimal-search',
+        metadata={"help": "Train Name which we use to identify the training. Need not be unique."},
+    )
+    evaluation_strategy: Optional[str] = field(
+        default="steps",
+        metadata={"help": "The evaluation strategy to adopt during training. Possible values are: no, steps and epoch"},
+    )
+    eval_steps: Optional[int] = field(
+        default=25000,
+        metadata={
+            "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
+    )
+    num_epochs: Optional[int] = field(
+        default=3,
+        metadata={"help": "Number of epochs for which to train. Negative means forever."},
+    )
+    output_dir: Optional[str] = field(
+        default="./save/train/longFormer-optimal-search",
+        metadata={
+            "help": "Directory to store the model in (If already exists, use --overwrite_output_dir)."},
+    )
+    overwrite_output_dir: Optional[bool] = field(
+        default=True,
+        metadata={"help": "Overwrite existing model directory."},
+    )
+    per_device_train_batch_size: Optional[int] = field(
+        default=4,
+    )
+    per_device_eval_batch_size: Optional[int] = field(
+        default=4,
+    )
+    gradient_accumulation_steps: Optional[int] = field(
+        default=16,
+    )
+    learning_rate: Optional[float] = field(
+        default=1e-4,
+        metadata={"help": "Learning rate for the model."},
+    )
+    num_train_epochs: Optional[int] = field(
+        default=3,
+        metadata={"help": "Number of epochs for which to train. Negative means forever."},
+    )
+    do_train: Optional[bool] = field(
+        default=True,
+        metadata={
+            "help": "Whether to train the model."},
+    )
+    do_eval: Optional[bool] = field(
+        default=True,
+        metadata={
+            "help": "Whether to eval the model."},
+    )
+    prediction_loss_only: Optional[bool] = field(
+        default=True,
+        metadata={
+            "help": "When performing evaluation and generating predictions, only returns the loss."},
+    )
+    seed: Optional[int] = field(
+        default=48,
+        metadata={"help": "Seed to control randomization."},
+    )
+    local_rank: Optional[int] = field(
+        default=-1,
+        metadata={"help": "Rank of the process during distributed training."},
+    )
+    fp16: Optional[bool] = field(
+        default=True,
+    )
+    #fp16_backend: Optional[str] = field(
+    #    default='apex',
+    #)
+    load_best_model_at_end: Optional[bool] = field(
+        default=True,
+    )
+    report_to: Optional[str] = field(
+        default='wandb',
+    )
 
-    model_args(parser)
 
-    parser.add_argument('--name',
-                        type=str,
-                        default='SpanBert',
-                        help='Train Name which we use to identify the training. Need not be unique.')
-    parser.add_argument('--train_file_path',
-                        type=str,
-                        default='data/train_data.pt',
-                        help='Path for cached train dataset')
-    parser.add_argument('--valid_file_path',
-                        type=str,
-                        default='data/valid_data.pt',
-                        help='Path for cached valid dataset')
-    parser.add_argument('--max_len',
-                        type=str,
-                        default=4096,
-                        help='Max input length for the source text.')
-    parser.add_argument('--evaluation_strategy',
-                        type=str,
-                        default="steps")
-    parser.add_argument('--eval_steps',
-                        type=int,
-                        default=100)
-    parser.add_argument('--num_epochs',
-                        type=int,
-                        default=3,
-                        help='Number of epochs for which to train. Negative means forever.')
-    parser.add_argument('--n_gpu',
-                        type=int,
-                        default=2,
-                        help='Number of GPU to train the model on.')
-    parser.add_argument('--output_dir',
-                        type=str,
-                        default='./save/train/longFormer',
-                        help='Directory to store the model in (If already exists, use --overwrite_output_dir).')
-    parser.add_argument('--overwrite_output_dir',
-                        type=bool,
-                        default=True,
-                        help='Overwrite existing model directory')
-    parser.add_argument('--per_device_train_batch_size',
-                        type=int,
-                        default=1)
-    parser.add_argument('--per_device_eval_batch_size',
-                        type=int,
-                        default=1)
-    parser.add_argument('--gradient_accumulation_steps',
-                        type=int,
-                        default=1)
-    parser.add_argument('--learning_rate',
-                        type=float,
-                        default=1e-4,
-                        help='Learning rate for the model')
-    parser.add_argument('--num_train_epochs',
-                        type=int,
-                        default=3,
-                        help='Number of epochs for which to train. Negative means forever.')
-    parser.add_argument('--do_train',
-                        type=bool,
-                        default=True,
-                        help='Whether to train the model.')
-    parser.add_argument('--seed',
-                        type=int,
-                        default=42,
-                        help='Seed to reproduce.')
-    parser.add_argument('--do_eval',
-                        type=bool,
-                        default=True,
-                        help='Whether to evaluate the model after training.')
-    parser.add_argument('--prediction_loss_only',
-                        type=bool,
-                        default=True)
-    parser.add_argument('--local_rank',
-                        type=int,
-                        default=-1)
-    parser.add_argument('--nproc_per_node',
-                        type=int,
-                        default=2)
-    parser.add_argument('--fp16',
-                        type=bool,
-                        default=True)
+
+
+
+
     # parser.add_argument('--sharded_ddp',
     #                    type=str,
     #                    default="zero_dp_3 auto_wrap")
-    parser.add_argument('--deepspeed',
-                       type=str,
-                       default="ds_config.json")
-    args = parser.parse_args()
-    return args
+    # parser.add_argument('--deepspeed',
+    #                    type=str,
+    #                    default="ds_config.json")
 

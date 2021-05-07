@@ -3,6 +3,10 @@ import torch
 from typing import Dict, List
 import tqdm
 import logging
+import sys
+from transformers.trainer_utils import is_main_process
+
+logger = logging.getLogger(__name__)
 
 
 def get_save_dir(base_dir, name, training, id_max=100):
@@ -103,3 +107,28 @@ class DummyDataCollator():
             'end_positions': end_positions,
             'attention_mask': attention_mask
         }
+
+
+def setup_logger(training_args):
+    # Set up logging and devices
+    if (
+            os.path.exists(training_args.output_dir)
+            and os.listdir(training_args.output_dir)
+            and training_args.do_train
+            and not training_args.overwrite_output_dir
+    ):
+        raise ValueError(
+            f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+        )
+
+    # Log on each process the small summary:
+    # Setup logging
+    # noinspection PyArgumentList
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
+    logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
+
+    return logger

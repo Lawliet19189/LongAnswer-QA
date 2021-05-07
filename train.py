@@ -1,53 +1,30 @@
-import numpy as np
 import torch
 import os
-import sys
-from args import get_train_args
 import util
-import logging
 
 import transformers
-from transformers import LongformerForQuestionAnswering, LongformerTokenizerFast, EvalPrediction
+from transformers import LongformerForQuestionAnswering, LongformerTokenizerFast
 from transformers import (
     HfArgumentParser,
-    DataCollator,
     Trainer,
-    TrainingArguments,
     set_seed,
 )
-from transformers.trainer_utils import get_last_checkpoint, is_main_process
+from transformers.trainer_utils import is_main_process
+from args import ModelArguments, DataTrainingArguments, TrainingArguments
+import os
+from fairscale.nn.data_parallel import FullyShardedDataParallel as FullyShardedDDP
 
-logger = logging.getLogger(__name__)
+os.environ['WANDB_PROJECT'] = "NaturalQuestions-LongFormer"
+os.environ['WANDB_LOG_MODEL'] = "true"
+os.environ['WANDB_WATCH'] = "all"
 
 
-def main(args):
-    # Set up logging and devices
-    if (
-            os.path.exists(args.output_dir)
-            and os.listdir(args.output_dir)
-            and args.do_train
-            and not args.overwrite_output_dir
-    ):
-        raise ValueError(
-            f"Output directory ({args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
-        )
+def main():
 
-    Hparser = HfArgumentParser((TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    args_dict = vars(args)
-
-    training_args = Hparser.parse_dict(args_dict)[0]
-
-    # Setup logging
-    # noinspection PyArgumentList
-    logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        handlers=[logging.StreamHandler(sys.stdout)],
-    )
-    logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
-
-    # Log on each process the small summary:
+    logger = util.setup_logger(training_args)
     logger.warning(
         f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
         + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
@@ -58,25 +35,22 @@ def main(args):
     logger.info(f"Training/evaluation parameters {training_args}")
 
     # Set seed
-    set_seed(args.seed)
+    set_seed(training_args.seed)
 
+    # load model
     tokenizer = LongformerTokenizerFast.from_pretrained(
-        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
-        cache_dir=args.cache_dir,
+        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir,
     )
     model = LongformerForQuestionAnswering.from_pretrained(
-        args.model_name_or_path,
-        cache_dir=args.cache_dir,
-    )
+        model_args.model_name_or_path,
+        #gradient_checkpointing=True,
+        cache_dir=model_args.cache_dir
+    ).to("cpu")
+    #model = FullyShardedDDP(model)
+    train_dataset = torch.load(data_args.train_file_path)
+    valid_dataset = torch.load(data_args.valid_file_path)
 
-    # Get datasets
-    # log.info('loading data from: ', args.train_file_path, ' and ', args.valid_file_path)
-    train_dataset = torch.load(args.train_file_path)
-    valid_dataset = torch.load(args.valid_file_path)
-    # log.info('Data loading done')
-    # print(vars(training_args))
-    # print(training_args.parallel_mode)
-    # Initialize our Trainer
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -87,28 +61,27 @@ def main(args):
     )
 
     # Training
-    if args.do_train:
+    if training_args.do_train:
         trainer.train(
-            model_path=args.output_dir
+            #model_path=training_args.output_dir
         )
         trainer.save_model()
-        # For convenience, we also re-save the tokenizer to the same directory,
-        # so that you can share your model easily on huggingface.co/models =)
+
         if trainer.is_world_master():
-            tokenizer.save_pretrained(args.output_dir)
+            tokenizer.save_pretrained(training_args.output_dir)
 
     # Evaluation
     results = {}
-    if args.do_eval and args.local_rank in [-1, 0]:
-        log.info("*** Evaluate ***")
+    if training_args.do_eval and training_args.local_rank in [-1, 0]:
+        logger.info("*** Evaluate ***")
 
         eval_output = trainer.evaluate()
 
-        output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
+        output_eval_file = os.path.join(training_args.output_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
-            log.info("***** Eval results *****")
+            logger.info("***** Eval results *****")
             for key in sorted(eval_output.keys()):
-                log.info("  %s = %s", key, str(eval_output[key]))
+                logger.info("  %s = %s", key, str(eval_output[key]))
                 writer.write("%s = %s\n" % (key, str(eval_output[key])))
 
         results.update(eval_output)
@@ -118,8 +91,8 @@ def main(args):
 
 def _mp_fn(index):
     # For xla_spawn (TPUs)
-    main(get_train_args())
+    main()
 
 
 if __name__ == "__main__":
-    main(get_train_args())
+    main()
