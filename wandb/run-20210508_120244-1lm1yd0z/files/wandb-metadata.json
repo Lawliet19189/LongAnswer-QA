@@ -1,0 +1,26 @@
+{
+    "os": "Linux-5.11.0-7614-generic-x86_64-with-glibc2.10",
+    "python": "3.8.8",
+    "heartbeatAt": "2021-05-08T06:32:46.929422",
+    "startedAt": "2021-05-08T06:32:44.326546",
+    "docker": null,
+    "gpu": "GeForce GTX 1080 Ti",
+    "gpu_count": 2,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [
+        "--local_rank=0"
+    ],
+    "state": "running",
+    "program": "train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "https://github.com/Lawliet19189/LongAnswer-QA",
+        "commit": "116f4b3c23d48d549677e377582448a3feced83c"
+    },
+    "email": null,
+    "root": "/home/sri/CS/atlassian/Laplace/QA/LongAnswer-QA",
+    "host": "pop-os",
+    "username": "sri",
+    "executable": "/home/sri/miniconda3/envs/dl/bin/python"
+}

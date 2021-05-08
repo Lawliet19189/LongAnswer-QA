@@ -46,7 +46,7 @@ class DataTrainingArguments:
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
-        default=1024,
+        default=4096,
         metadata={"help": "Max input length for the source text"},
     )
 
@@ -65,12 +65,12 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "The evaluation strategy to adopt during training. Possible values are: no, steps and epoch"},
     )
     eval_steps: Optional[int] = field(
-        default=25000,
+        default=1000,
         metadata={
             "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
     )
     num_epochs: Optional[int] = field(
-        default=3,
+        default=5,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
@@ -83,21 +83,25 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Overwrite existing model directory."},
     )
     per_device_train_batch_size: Optional[int] = field(
-        default=4,
+        default=32,
     )
     per_device_eval_batch_size: Optional[int] = field(
-        default=4,
+        default=32,
     )
     gradient_accumulation_steps: Optional[int] = field(
-        default=16,
+        default=32,
     )
     learning_rate: Optional[float] = field(
         default=1e-4,
         metadata={"help": "Learning rate for the model."},
     )
     num_train_epochs: Optional[int] = field(
-        default=3,
+        default=5,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
+    )
+    save_strategy: Optional[int] = field(
+        default="epoch",
+        metadata={"help": "Saving model strategy"}
     )
     do_train: Optional[bool] = field(
         default=True,
