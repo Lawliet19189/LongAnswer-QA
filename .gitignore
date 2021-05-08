@@ -133,3 +133,4 @@ data/*
 runs/*
 save/*
 nq/*
+wandb/*
