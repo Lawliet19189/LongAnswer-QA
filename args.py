@@ -38,11 +38,11 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
     train_file_path: Optional[str] = field(
-        default='data/train_data.pt',
+        default='dataset/train_data_4096.pt',
         metadata={"help": "Path for cached train dataset"},
     )
     valid_file_path: Optional[str] = field(
-        default='data/valid_data.pt',
+        default='dataset/valid_data_4096.pt',
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
@@ -83,13 +83,13 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Overwrite existing model directory."},
     )
     per_device_train_batch_size: Optional[int] = field(
-        default=32,
+        default=128,
     )
     per_device_eval_batch_size: Optional[int] = field(
-        default=32,
+        default=128,
     )
     gradient_accumulation_steps: Optional[int] = field(
-        default=32,
+        default=128,
     )
     learning_rate: Optional[float] = field(
         default=1e-4,
