@@ -61,14 +61,14 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Train Name which we use to identify the training. Need not be unique."},
     )
     evaluation_strategy: Optional[str] = field(
-        default="steps",
+        default="epoch",
         metadata={"help": "The evaluation strategy to adopt during training. Possible values are: no, steps and epoch"},
     )
-    eval_steps: Optional[int] = field(
-        default=1000,
-        metadata={
-            "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
-    )
+    #eval_steps: Optional[int] = field(
+    #    default=1000,
+    #    metadata={
+    #        "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
+    #)
     num_epochs: Optional[int] = field(
         default=5,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
@@ -99,7 +99,7 @@ class TrainingArguments(TrainingArguments):
         default=5,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
-    save_strategy: Optional[int] = field(
+    save_strategy: Optional[str] = field(
         default="epoch",
         metadata={"help": "Saving model strategy"}
     )
