@@ -70,7 +70,7 @@ class TrainingArguments(TrainingArguments):
     #        "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
     #)
     num_epochs: Optional[int] = field(
-        default=5,
+        default=7,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
@@ -89,14 +89,14 @@ class TrainingArguments(TrainingArguments):
         default=128,
     )
     gradient_accumulation_steps: Optional[int] = field(
-        default=128,
+        default=1,
     )
     learning_rate: Optional[float] = field(
         default=1e-4,
         metadata={"help": "Learning rate for the model."},
     )
     num_train_epochs: Optional[int] = field(
-        default=5,
+        default=7,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     save_strategy: Optional[str] = field(
