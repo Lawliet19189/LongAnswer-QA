@@ -38,11 +38,11 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
     train_file_path: Optional[str] = field(
-        default='dataset/train_data_4096.pt',
+        default='/dbfs/grimlock/sri/training/LongAnswer-QA/dataset/train_data_4096.pt',
         metadata={"help": "Path for cached train dataset"},
     )
     valid_file_path: Optional[str] = field(
-        default='dataset/valid_data_4096.pt',
+        default='/dbfs/grimlock/sri/training/LongAnswer-QA/dataset/valid_data_4096.pt',
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
@@ -74,7 +74,7 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
-        default="./save/train/longFormer-optimal-search",
+        default="/dbfs/grimlock/sri/training/LongAnswer-QA/save/train/longFormer-optimal-search",
         metadata={
             "help": "Directory to store the model in (If already exists, use --overwrite_output_dir)."},
     )
