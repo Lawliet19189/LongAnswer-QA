@@ -72,8 +72,8 @@ class TrainingArguments(TrainingArguments):
     #        "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
     #)
     num_epochs: Optional[int] = field(
-        #default=7,
-        default=1,
+        default=7,
+        #default=1,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
@@ -87,11 +87,11 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Overwrite existing model directory."},
     )
     per_device_train_batch_size: Optional[int] = field(
-        default=128,
+        default=32,
         #default=1,
     )
     per_device_eval_batch_size: Optional[int] = field(
-        default=128,
+        default=32,
         #default=1,
     )
     gradient_accumulation_steps: Optional[int] = field(
