@@ -87,11 +87,11 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Overwrite existing model directory."},
     )
     per_device_train_batch_size: Optional[int] = field(
-        default=32,
+        default=16,
         #default=1,
     )
     per_device_eval_batch_size: Optional[int] = field(
-        default=32,
+        default=16,
         #default=1,
     )
     gradient_accumulation_steps: Optional[int] = field(
