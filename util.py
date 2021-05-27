@@ -132,3 +132,10 @@ def setup_logger(training_args):
     logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
 
     return logger
+
+
+def convert_to_tensors(example):
+    for k in example.keys():
+        if k in ["attention_mask", "end_positions", "start_positions", "input_ids"]:
+            example[k] = torch.as_tensor(example[k])
+    return example

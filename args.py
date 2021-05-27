@@ -39,10 +39,12 @@ class DataTrainingArguments:
     """
     train_file_path: Optional[str] = field(
         default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/train_data_4096',
+        #default='datasets/train_data_4096',
         metadata={"help": "Path for cached train dataset"},
     )
     valid_file_path: Optional[str] = field(
         default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/validation_data_4096',
+        #default='datasets/validation_data_4096',
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
@@ -70,11 +72,13 @@ class TrainingArguments(TrainingArguments):
     #        "help": "Number of update steps between two evaluations if evaluation_strategy='steps'. Will default to the same value as logging_steps if not set."},
     #)
     num_epochs: Optional[int] = field(
-        default=7,
+        #default=7,
+        default=1,
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
         default="/dbfs/grimlock/sri/training/LongAnswer-QA/save/train/longFormer-optimal-search",
+        #default="save/train/longFormer-optimal-search",
         metadata={
             "help": "Directory to store the model in (If already exists, use --overwrite_output_dir)."},
     )
@@ -84,9 +88,11 @@ class TrainingArguments(TrainingArguments):
     )
     per_device_train_batch_size: Optional[int] = field(
         default=128,
+        #default=1,
     )
     per_device_eval_batch_size: Optional[int] = field(
         default=128,
+        #default=1,
     )
     gradient_accumulation_steps: Optional[int] = field(
         default=1,
