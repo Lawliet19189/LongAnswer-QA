@@ -13,6 +13,7 @@ from transformers.trainer_utils import is_main_process
 from args import ModelArguments, DataTrainingArguments, TrainingArguments
 import os
 from fairscale.nn.data_parallel import FullyShardedDataParallel as FullyShardedDDP
+import datasets
 
 os.environ['WANDB_PROJECT'] = "NaturalQuestions-LongFormer"
 os.environ['WANDB_LOG_MODEL'] = "true"
@@ -23,7 +24,9 @@ def main():
 
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print(model_args, "\n\n", data_args, "\n\n", training_args, "\n\n")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     logger = util.setup_logger(training_args)
     logger.warning(
         f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
@@ -48,9 +51,13 @@ def main():
         cache_dir=model_args.cache_dir
     ).to("cpu")
     #model = FullyShardedDDP(model)
-    train_dataset = torch.load(data_args.train_file_path)
-    valid_dataset = torch.load(data_args.valid_file_path)
-
+    #train_dataset = torch.load(data_args.train_file_path)
+    #valid_dataset = torch.load(data_args.valid_file_path)
+    train_dataset = datasets.load_from_disk(data_args.train_file_path)
+    valid_dataset = datasets.load_from_disk(data_args.valid_file_path)
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print(train_dataset.shape, valid_dataset.shape)
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     trainer = Trainer(
         model=model,
         args=training_args,

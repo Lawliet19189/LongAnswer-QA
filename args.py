@@ -38,11 +38,11 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
     train_file_path: Optional[str] = field(
-        default='/dbfs/grimlock/sri/training/LongAnswer-QA/dataset/train_data_4096.pt',
+        default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/train_data_4096',
         metadata={"help": "Path for cached train dataset"},
     )
     valid_file_path: Optional[str] = field(
-        default='/dbfs/grimlock/sri/training/LongAnswer-QA/dataset/valid_data_4096.pt',
+        default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/validation_data_4096',
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
