@@ -54,7 +54,7 @@ def main():
     #train_dataset = torch.load(data_args.train_file_path)
     #valid_dataset = torch.load(data_args.valid_file_path)
     train_dataset = datasets.load_from_disk(data_args.train_file_path)
-    #train_dataset = train_dataset.map(util.convert_to_tensors)
+    # train_dataset = train_dataset.map(util.convert_to_tensors)
     train_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'end_positions', 'start_positions'])
     valid_dataset = datasets.load_from_disk(data_args.valid_file_path)
     valid_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'end_positions', 'start_positions'])

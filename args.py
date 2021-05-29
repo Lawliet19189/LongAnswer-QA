@@ -38,13 +38,13 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
     train_file_path: Optional[str] = field(
-        default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/train_data_4096',
-        #default='datasets/train_data_4096',
+        #default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/train_data_4096',
+        default='datasets/train_data_4096',
         metadata={"help": "Path for cached train dataset"},
     )
     valid_file_path: Optional[str] = field(
-        default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/validation_data_4096',
-        #default='datasets/validation_data_4096',
+        #default='/dbfs/grimlock/sri/training/LongAnswer-QA/datasets/validation_data_4096',
+        default='datasets/validation_data_4096',
         metadata={"help": "Path for cached valid dataset"},
     )
     max_len: Optional[int] = field(
@@ -77,8 +77,8 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Number of epochs for which to train. Negative means forever."},
     )
     output_dir: Optional[str] = field(
-        default="/dbfs/grimlock/sri/training/LongAnswer-QA/save/train/longFormer-optimal-search",
-        #default="save/train/longFormer-optimal-search",
+        #default="/dbfs/grimlock/sri/training/LongAnswer-QA/save/train/longFormer-optimal-search",
+        default="save/train/longFormer-optimal-search",
         metadata={
             "help": "Directory to store the model in (If already exists, use --overwrite_output_dir)."},
     )
@@ -87,11 +87,11 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Overwrite existing model directory."},
     )
     per_device_train_batch_size: Optional[int] = field(
-        default=16,
+        default=128,
         #default=1,
     )
     per_device_eval_batch_size: Optional[int] = field(
-        default=16,
+        default=128,
         #default=1,
     )
     gradient_accumulation_steps: Optional[int] = field(
@@ -129,7 +129,7 @@ class TrainingArguments(TrainingArguments):
         metadata={"help": "Seed to control randomization."},
     )
     local_rank: Optional[int] = field(
-        default=-1,
+        default=0,
         metadata={"help": "Rank of the process during distributed training."},
     )
     fp16: Optional[bool] = field(
